@@ -280,7 +280,10 @@
     if (panelVisible) return;
     panelVisible = true;
     currentTabId = tabId;
-    if (extOk()) iframe.src = chrome.runtime.getURL(`sidepanel.html?tabId=${tabId}&mode=injected`);
+    // mode=window selects the panel's built-in chat. The default panel embeds
+    // claude.ai, whose frame-ancestors only allows the extension itself, so it
+    // cannot load inside a page.
+    if (extOk()) iframe.src = chrome.runtime.getURL(`sidepanel.html?tabId=${tabId}&mode=window`);
     hostEl.style.setProperty('display', 'block', 'important');
     hostEl.offsetHeight;
     hostEl.style.setProperty('right', '0px', 'important');

@@ -1,6 +1,6 @@
 /**
  * Development only (patch.mjs --dev): lets the agent reload the unpacked
- * extension by calling the navigate tool with url "claude-for-arc://reload",
+ * extension by calling the navigate tool with url "https://claude-for-arc.invalid/reload",
  * so iterating on the patch does not need a click in arc://extensions.
  */
 (() => {
@@ -14,7 +14,7 @@
       ws.addEventListener('message', evt => {
         try {
           const msg = JSON.parse(evt.data);
-          if (msg.type === 'tool_call' && msg.tool === 'navigate' && msg.args?.url === 'claude-for-arc://reload') {
+          if (msg.type === 'tool_call' && msg.tool === 'navigate' && /^https?:\/\/claude-for-arc\.invalid\/reload/.test(msg.args?.url || '')) {
             ws.send(JSON.stringify({
               type: 'tool_result',
               tool_use_id: msg.tool_use_id,
