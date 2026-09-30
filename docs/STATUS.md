@@ -1,6 +1,12 @@
 # Status
 
-## Current state (2026-09-28)
+## Broken since 2026-09-29 (observed 2026-09-30)
+
+Arc auto-updated to 1.166.0 (Chromium 154) and restarted on 2026-09-29 14:43. Since then Claude Code cannot open its first tab: `tabs_context_mcp` with `createIfEmpty: true` times out in both profiles (5 of 5 calls), so no other tool is reachable. Without `createIfEmpty` it answers at once ("No tab group exists for this session"), so the extension is connected and alive. Cause not found yet: it needs the service worker console in `arc://extensions`. Not yet known whether the Arc update or the restart itself triggers it.
+
+The official extension is already at 1.0.97; the patched build is still 1.0.94.
+
+## Last verified state (2026-09-28)
 
 Published at github.com/dsbugaev/claude-for-arc. Verified live on macOS, Arc 1.165.1, official extension 1.0.94, Claude Code 2.1.283:
 
