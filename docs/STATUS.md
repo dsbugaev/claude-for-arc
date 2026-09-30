@@ -20,7 +20,9 @@ Rejected fix: show the new tab for a moment and restore the previous one. Activa
 
 Chosen fix: `tabs.create` with `active: false` opens the tab in a `popup` window (a Little Arc window) with `focused: false`. It opens behind the current window, the user's space and active tab stay as they were, and click, typing and screenshot work on the first try. A second tab gets a second window; closing the tab closes its window.
 
-Not tested: Arc behind another application, and a minimized Little Arc window.
+With Arc behind another application the click and the screenshot also work (checked once). Opening the first window brings Arc to the front for 1-2 seconds, then the previous application is in front again (2 of 2 timed runs); a second window did not do that. In one untimed run Arc was still in front several seconds later, not explained.
+
+Not tested: a minimized Little Arc window.
 
 ## Open: tab creation hang (2026-09-29 and 2026-09-30)
 
@@ -39,11 +41,12 @@ Next time it happens, before reloading: call navigate with `tabId: 1` on `https:
 
 - Find the cause of the tab creation hang (see above).
 - Recheck the work profile (second Claude account) and the panel agent on 1.0.97.
-- Test clicks with Arc behind another application and with the Little Arc window minimized.
+- Stop the first window from bringing Arc to the front, if Arc allows it.
+- Test clicks with the Little Arc window minimized.
 - Windows: paths are in the script, not tested.
 
 ## Known issues
 
-- Every tab Claude Code opens is a separate Little Arc window.
+- Every tab Claude Code opens is a separate Little Arc window. Opening the first one brings Arc to the front for 1-2 seconds.
 - `windows.getAll({ populate: true })` returns tabs without the emulated `groupId`.
 - Claude Code cannot type into the side panel iframe (not needed for normal use).
