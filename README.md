@@ -13,8 +13,9 @@ Out of the box, Claude in Chrome does not work in Arc. Arc has no side panel, so
 | | Official extension in Arc | Claude for Arc |
 |---|---|---|
 | Side panel (Cmd+E / toolbar icon) | does not open | opens, docked to the right |
-| Claude Code: tabs, navigate, screenshot | times out | works |
-| Claude Code: click, type, key presses, form input | times out | works |
+| Claude Code: tabs, navigate, form input | times out | works |
+| Claude Code: click, type, key presses | times out | works once Claude's tab has been shown (see Limitations) |
+| Claude Code: screenshot | times out | works while Claude's tab is visible |
 | Claude Code: read_page, find, get_page_text, JavaScript | times out | works |
 | Panel agent acting on the page | not available | works |
 
@@ -64,6 +65,7 @@ Browser control needed no changes. The official code uses `chrome.debugger` for 
 ## Limitations
 
 - The panel uses the extension's built-in chat, not the newer claude.ai-based panel.
+- Claude Code clicks and key presses are dropped in a tab Arc has never shown. The extension opens Claude's tab in the background, so select that tab once before clicking; after that it can go back to the background. Screenshots need the tab to be the visible one. Reading pages, filling form fields and running JavaScript work either way.
 - Cmd+E is captured on web pages to toggle the panel.
 - The panel cannot open on `arc://` pages, the Chrome Web Store, and tabs that were open before the extension was loaded (reload the tab).
 - Tested on macOS only. Windows paths are supported by the script but not tested.

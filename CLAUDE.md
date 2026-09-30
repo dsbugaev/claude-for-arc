@@ -7,11 +7,12 @@ Compatibility layer that makes the official Claude in Chrome extension work in t
 - `patch.mjs` - finds or downloads the official extension, copies it to `dist/extension`, adds `src/` and edits the manifest, service worker loader and extension pages.
 - `src/tabgroups.js` - tab group emulation (Arc's `chrome.tabGroups` does not work).
 - `src/sidepanel.js`, `src/panel-injector.js`, `src/viewport-override.js`, `src/cmd-e-fallback.js` - side panel injected into pages.
-- `src/dev-reload.js` - included only with `--dev`: `navigate` to `https://claude-for-arc.invalid/reload` reloads the extension.
+- `src/dev-reload.js`, `src/dev-trace.js` - included only with `--dev`. `navigate` with `tabId: 1` to `https://claude-for-arc.invalid/reload` reloads the extension, `/trace` returns the log of window, tab and tab group API calls (a hung call stays `pending`), `/state` returns the windows and tabs the profile sees. Pass a `tabId`: without one Claude Code first asks for the tab group.
 
 ## Working on it
 
 - Rebuild: `node patch.mjs --dev --download`, then reload (dev hook or the reload arrow in `arc://extensions`).
+- Clicks and key presses are dropped in a tab Arc has never shown, and screenshots need the visible tab; select Claude's tab before checking them (details in `docs/STATUS.md`).
 - Verify in Arc through Claude Code (`mcp__claude-in-chrome__*`): `tabs_context_mcp` with `createIfEmpty`, navigate, `find`, `read_page`, click by ref, `type`, `form_input`, `javascript_tool`, screenshot. Check the side panel opens and acts on the page.
 - Never modify files inside the official bundle; add files and entries only.
 - Update the tested versions in `patch.mjs` and README after verifying a new official version.

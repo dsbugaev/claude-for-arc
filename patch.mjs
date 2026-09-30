@@ -33,7 +33,7 @@ if (flag('--help') || flag('-h')) {
   --from <dir>   use this unpacked official extension (a folder with manifest.json)
   --download     download the latest official build from Google instead of using an installed copy
   --out <dir>    where to write the patched extension (default: ./dist/extension)
-  --dev          include the dev reload hook (for working on this project)`);
+  --dev          include the dev reload and trace hooks (for working on this project)`);
   process.exit(0);
 }
 
@@ -158,7 +158,7 @@ async function main() {
   fs.rmSync(path.join(out, '_metadata'), { recursive: true, force: true });
 
   const files = ['tabgroups.js', 'sidepanel.js', 'panel-injector.js', 'viewport-override.js', 'cmd-e-fallback.js'];
-  if (flag('--dev')) files.push('dev-reload.js');
+  if (flag('--dev')) files.push('dev-trace.js', 'dev-reload.js');
   fs.mkdirSync(path.join(out, DIR), { recursive: true });
   for (const f of files) fs.copyFileSync(path.join(SRC, f), path.join(out, DIR, f));
 
@@ -167,7 +167,7 @@ async function main() {
   if (!loader) throw new Error('manifest.json has no background.service_worker');
   const loaderPath = path.join(out, loader);
   const prefix = path.relative(path.dirname(loaderPath), path.join(out, DIR)).split(path.sep).join('/') || '.';
-  const imports = ['tabgroups.js', 'sidepanel.js', ...(flag('--dev') ? ['dev-reload.js'] : [])]
+  const imports = ['tabgroups.js', ...(flag('--dev') ? ['dev-trace.js'] : []), 'sidepanel.js', ...(flag('--dev') ? ['dev-reload.js'] : [])]
     .map(f => `import './${prefix}/${f}';`);
   fs.writeFileSync(loaderPath, `${imports.join('\n')}\n${fs.readFileSync(loaderPath, 'utf8')}`);
 
