@@ -4,7 +4,8 @@
  * arc://extensions or the service worker console.
  *
  *   https://claude-for-arc.invalid/reload  reloads the extension
- *   https://claude-for-arc.invalid/trace   returns the API call log (dev-trace.js)
+ *   https://claude-for-arc.invalid/trace   returns the last API calls (dev-trace.js),
+ *                                          add ?full to include their results
  *   https://claude-for-arc.invalid/state   returns the windows and tabs this profile sees
  *
  * Pass any tabId: without one Claude Code first asks for the tab group, and that
@@ -15,11 +16,16 @@
   if (!OrigWS || globalThis.__claudeForArcDevReload) return;
   globalThis.__claudeForArcDevReload = true;
 
-  function trace() {
+  function trace(full) {
     const log = globalThis.__claudeForArcTrace || [];
-    const recent = log.slice(-80);
+    const recent = log.slice(-40);
     const pending = log.filter(e => e.state === 'pending' && !recent.includes(e));
-    return JSON.stringify({ version: chrome.runtime.getManifest().version_name, pending, recent });
+    const compact = ({ result, ...entry }) => (full ? { ...entry, result } : entry);
+    return JSON.stringify({
+      version: chrome.runtime.getManifest().version_name,
+      pending: pending.map(compact),
+      recent: recent.map(compact)
+    });
   }
 
   function host(url) {
@@ -48,7 +54,7 @@
             tool_use_id: msg.tool_use_id,
             content: [{ type: 'text', text }]
           }));
-          if (command === 'trace') reply(trace());
+          if (command === 'trace') reply(trace(/[?&]full\b/.test(msg.args.url)));
           else if (command === 'state') state().then(reply, e => reply(`state failed: ${e?.message || e}`));
           else {
             reply('Reloading Claude for Arc');

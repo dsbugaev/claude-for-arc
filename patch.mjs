@@ -15,7 +15,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const EXTENSION_ID = 'fcoeoabgfenejglbffodgkkbkcdhcgfn';
-const TESTED_VERSIONS = ['1.0.94'];
+const TESTED_VERSIONS = ['1.0.94', '1.0.97'];
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const SRC = path.join(ROOT, 'src');
 const DIR = 'claude-for-arc';

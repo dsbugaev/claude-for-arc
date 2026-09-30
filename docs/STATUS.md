@@ -2,13 +2,25 @@
 
 ## Current state (2026-09-30)
 
-Works again in the personal Arc profile after an extension reload. Verified on macOS, Arc 1.166.0 (Chromium 154), official extension 1.0.97, from Claude Code:
+Works in the personal Arc profile. Verified on macOS, Arc 1.166.0 (Chromium 154), official extension 1.0.97, from Claude Code:
 
-- Always: tabs, navigate, find, read_page, get_page_text, form_input, JavaScript.
-- Click by ref and by coordinates, type, key: only after Claude's tab has been shown in Arc once. Screenshots: only while it is the visible tab (see Known issues).
-- Side panel on 1.0.97: the panel host opens on Cmd+E; its content was not checked. The full panel check was last done on 1.0.94 (2026-09-28).
+- Tabs, navigate, find, read_page, get_page_text, form_input, JavaScript.
+- Click by ref, type, key, screenshot: on the first try, in a tab opened by Claude Code. Such tabs now open in their own Little Arc window (see "Own window" below).
+- Side panel: opens on Cmd+E and shows the chat. The panel agent acting on a page was last checked on 1.0.94 (2026-09-28), not on 1.0.97.
 
-The work profile still runs the build it loaded on 2026-09-29 and has not been rechecked.
+The work profile loads the same build after its next extension reload and has not been rechecked.
+
+## Own window for Claude's tabs (2026-09-30)
+
+Arc does not deliver mouse and key presses sent through the debugger to a tab it is not showing, and cannot take a screenshot of it. The official code opens Claude's tab in the background of the user's window (`active: false`), so the first click was lost while the tool still reported "Clicked". This was the "click by ref missed" issue noted on 2026-09-28.
+
+What was measured on one background tab: never shown - click and typing lost, only the mouse move arrived; selected once - delivered; back in the background 1 s and 75 s later and after a new navigation - still delivered. Screenshots failed whenever the tab was not the visible one (3 of 3).
+
+Rejected fix: show the new tab for a moment and restore the previous one. Activating a tab from the extension switches Arc to the space of that tab, and the extension cannot restore the space the user was in: from a space of another profile, and from another space of the same profile, Arc ended up in the space of the new tab (2 of 2).
+
+Chosen fix: `tabs.create` with `active: false` opens the tab in a `popup` window (a Little Arc window) with `focused: false`. It opens behind the current window, the user's space and active tab stay as they were, and click, typing and screenshot work on the first try. A second tab gets a second window; closing the tab closes its window.
+
+Not tested: Arc behind another application, and a minimized Little Arc window.
 
 ## Open: tab creation hang (2026-09-29 and 2026-09-30)
 
@@ -17,7 +29,7 @@ The work profile still runs the build it loaded on 2026-09-29 and has not been r
 What is known:
 
 - The hang is before the group record is saved: no `tabGroups` record in extension storage for the failed calls. That leaves `windows.getLastFocused`, `tabs.create` or the first steps of `createGroup`.
-- Group creation from the side panel worked in both profiles after the restart (records from 09-29 15:19 and 09-30 14:13), so the session path (new inactive tab in the last focused window) is the suspect.
+- Group creation from the side panel worked in both profiles after the restart (records from 09-29 15:19 and 09-30 14:13), so the session path (new inactive tab in the last focused window) is the suspect. Since the own-window change that path no longer calls the native `tabs.create` for a background tab.
 - Ruled out by test: the active space belonging to another profile; an open Little Arc window (it is a `popup` window and is filtered out).
 - Not tested: Arc hidden or minimized at the time of the call; stale state in a long-running service worker.
 
@@ -25,16 +37,13 @@ Next time it happens, before reloading: call navigate with `tabId: 1` on `https:
 
 ## Next
 
-- Make clicks work without a manual step: show a newly created tab once and switch back, or open Claude's tabs in their own window. Needs a decision, it changes what the user sees. Check first whether activating a tab from the extension switches Arc to another space.
 - Find the cause of the tab creation hang (see above).
-- Check the side panel content on 1.0.97, then add it to `TESTED_VERSIONS`.
-- Recheck the work profile (second Claude account).
+- Recheck the work profile (second Claude account) and the panel agent on 1.0.97.
+- Test clicks with Arc behind another application and with the Little Arc window minimized.
 - Windows: paths are in the script, not tested.
 
 ## Known issues
 
-- Clicks and key presses are dropped in a tab Arc has never shown. The official code opens Claude's tab in the background (`active: false`); such a tab receives only the mouse move, the press, release and key events are dropped, and the tool still reports "Clicked". Controlled run on 2026-09-30, one tab: never shown - click and typing lost; selected - delivered; back in the background, 1 s and 75 s later and after a new navigation - still delivered. This is the "click by ref missed" issue noted on 2026-09-28.
-- Screenshots fail with "Failed to capture screenshot via CDP" when Claude's tab is not the visible one (3 of 3), and work when it is.
-- Not explained: on another tab that was not selected by the test, one screenshot and one click went through and the next 4 clicks were lost. The user may have opened that tab, or a second factor is involved (Arc window in front or not).
+- Every tab Claude Code opens is a separate Little Arc window.
 - `windows.getAll({ populate: true })` returns tabs without the emulated `groupId`.
 - Claude Code cannot type into the side panel iframe (not needed for normal use).

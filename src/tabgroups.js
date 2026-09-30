@@ -11,6 +11,9 @@
  * options) share one view. Tabs returned by chrome.tabs.* carry the emulated
  * `groupId`. Nothing is grouped visually in Arc.
  *
+ * Tabs the official code opens in the background go to a window of their own,
+ * see createInOwnWindow below.
+ *
  * Loaded before the official code: first import in the service worker, first
  * classic <script> in extension pages.
  */
@@ -106,8 +109,26 @@
     return withCallback(p, cb);
   };
 
+  // Arc drops mouse and key presses sent through the debugger, and cannot take
+  // a screenshot, in a tab it is not showing. The official code opens its tabs in
+  // the background of the user's window, so such a tab goes to a window of its
+  // own instead (a Little Arc window), where it is the visible tab.
+  async function createInOwnWindow(props) {
+    const url = !props.url || /^chrome:\/\/newtab\/?$/.test(props.url) ? 'about:blank' : props.url;
+    const win = await chrome.windows.create({ url, type: 'popup', focused: false });
+    const tab = win?.tabs?.[0];
+    if (!tab) throw new Error('No tab in the new window');
+    return tab;
+  }
+
   tabs.create = function (props, cb) {
-    return withCallback(orig.create(props).then(annotate), cb);
+    const p = (async () => {
+      if (props?.active === false) {
+        try { return annotate(await createInOwnWindow(props)); } catch (e) {}
+      }
+      return annotate(await orig.create(props));
+    })();
+    return withCallback(p, cb);
   };
 
   tabs.update = function (...args) {

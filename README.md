@@ -14,12 +14,11 @@ Out of the box, Claude in Chrome does not work in Arc. Arc has no side panel, so
 |---|---|---|
 | Side panel (Cmd+E / toolbar icon) | does not open | opens, docked to the right |
 | Claude Code: tabs, navigate, form input | times out | works |
-| Claude Code: click, type, key presses | times out | works once Claude's tab has been shown (see Limitations) |
-| Claude Code: screenshot | times out | works while Claude's tab is visible |
+| Claude Code: click, type, key presses, screenshot | times out | works, in a separate Little Arc window |
 | Claude Code: read_page, find, get_page_text, JavaScript | times out | works |
 | Panel agent acting on the page | not available | works |
 
-Tested on macOS with Arc 1.165.1 (Chromium 153), Claude in Chrome 1.0.94 and Claude Code 2.1.283.
+Tested on macOS with Arc 1.166.0 (Chromium 154) and Claude in Chrome 1.0.97.
 
 ## Install
 
@@ -58,14 +57,15 @@ Then click the reload arrow on **Claude for Arc** in `arc://extensions`.
 `patch.mjs` copies the official extension and adds files from `src/`. The official code is not modified. Only the manifest, the service worker loader and three extension pages get extra entries.
 
 - **Tab groups** (`src/tabgroups.js`). Replaces `chrome.tabGroups`, `chrome.tabs.group` and `chrome.tabs.ungroup` with an emulation stored in `chrome.storage.session`. Tabs returned by `chrome.tabs.*` carry the emulated `groupId`. It is loaded before the official code in the service worker and in extension pages, so they share one view. Tabs Claude drives are not grouped visually in Arc.
+- **Own window for Claude's tabs** (`src/tabgroups.js`). The official code opens the tabs Claude Code drives in the background of your window. Arc does not deliver mouse and key presses to a tab it is not showing, and cannot take a screenshot of it. So these tabs open in a separate Little Arc window instead, where the tab is always the visible one. Your own window, space and active tab are not touched.
 - **Side panel** (`src/sidepanel.js`, `src/panel-injector.js`, `src/viewport-override.js`). Replaces `chrome.sidePanel`. Opening the panel shows the extension's `sidepanel.html` in an iframe docked to the right edge of the page, and the page is resized to make room. The panel runs in window mode, which uses the extension's built-in chat. The default panel embeds claude.ai, and claude.ai does not allow being embedded inside another site.
 
-Browser control needed no changes. The official code uses `chrome.debugger` for clicks and typing, and it works in Arc. It was only blocked by the tab groups.
+Browser control itself needed no changes. The official code uses `chrome.debugger` for clicks and typing, and it works in Arc once the tab is visible.
 
 ## Limitations
 
 - The panel uses the extension's built-in chat, not the newer claude.ai-based panel.
-- Claude Code clicks and key presses are dropped in a tab Arc has never shown. The extension opens Claude's tab in the background, so select that tab once before clicking; after that it can go back to the background. Screenshots need the tab to be the visible one. Reading pages, filling form fields and running JavaScript work either way.
+- Each tab Claude Code opens appears as a separate Little Arc window. It opens behind your current window and closes when Claude closes the tab.
 - Cmd+E is captured on web pages to toggle the panel.
 - The panel cannot open on `arc://` pages, the Chrome Web Store, and tabs that were open before the extension was loaded (reload the tab).
 - Tested on macOS only. Windows paths are supported by the script but not tested.
