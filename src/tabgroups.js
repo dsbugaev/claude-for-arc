@@ -93,6 +93,20 @@
     return promise;
   }
 
+  // Rejects after `ms`; if the call still succeeds later, `late` gets its result.
+  function withTimeout(promise, ms, late) {
+    let timer;
+    return Promise.race([
+      promise.finally(() => clearTimeout(timer)),
+      new Promise((resolve, reject) => {
+        timer = setTimeout(() => {
+          promise.then(v => late?.(v), () => {});
+          reject(new Error(`Timed out after ${ms} ms`));
+        }, ms);
+      })
+    ]);
+  }
+
   // ─── chrome.tabs ───
 
   tabs.get = function (tabId, cb) {
@@ -115,7 +129,8 @@
   // own instead (a Little Arc window), where it is the visible tab.
   async function createInOwnWindow(props) {
     const url = !props.url || /^chrome:\/\/newtab\/?$/.test(props.url) ? 'about:blank' : props.url;
-    const win = await chrome.windows.create({ url, type: 'popup', focused: false });
+    const win = await withTimeout(chrome.windows.create({ url, type: 'popup', focused: false }), 5000,
+      late => late?.id !== undefined && chrome.windows.remove(late.id).catch(() => {}));
     const tab = win?.tabs?.[0];
     if (!tab) throw new Error('No tab in the new window');
     return tab;
@@ -128,6 +143,23 @@
       }
       return annotate(await orig.create(props));
     })();
+    return withCallback(p, cb);
+  };
+
+  // On 2026-09-29 and 09-30 creating Claude's first tab hung until the extension
+  // was reloaded, somewhere in windows.getLastFocused or tabs.create; the cause is
+  // not known. The window it returns only decides where a tab would open, and
+  // Claude's tabs get their own window, so after a few seconds any normal window
+  // will do.
+  const lastFocused = chrome.windows.getLastFocused.bind(chrome.windows);
+  chrome.windows.getLastFocused = function (...args) {
+    const cb = typeof args[args.length - 1] === 'function' ? args.pop() : undefined;
+    const p = withTimeout(lastFocused(...args), 3000).catch(async e => {
+      if (!/^Timed out/.test(e.message)) throw e;
+      const [win] = await chrome.windows.getAll({ windowTypes: ['normal'] });
+      if (!win) throw new Error('No last-focused window');
+      return win;
+    });
     return withCallback(p, cb);
   };
 

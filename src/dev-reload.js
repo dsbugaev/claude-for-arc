@@ -7,6 +7,9 @@
  *   https://claude-for-arc.invalid/trace   returns the last API calls (dev-trace.js),
  *                                          add ?full to include their results
  *   https://claude-for-arc.invalid/state   returns the windows and tabs this profile sees
+ *   https://claude-for-arc.invalid/window?type=popup&focused=false   creates a window with
+ *                                          these chrome.windows.create options (test bench)
+ *   https://claude-for-arc.invalid/close?id=123   closes window 123
  *
  * Pass any tabId: without one Claude Code first asks for the tab group, and that
  * is the call that may be broken.
@@ -40,6 +43,24 @@
     })));
   }
 
+  function options(url) {
+    const opts = {};
+    for (const [k, v] of new URL(url).searchParams) {
+      opts[k] = v === 'true' ? true : v === 'false' ? false : /^-?\d+$/.test(v) ? Number(v) : v;
+    }
+    return opts;
+  }
+
+  async function bench(command, url) {
+    if (command === 'close') {
+      await chrome.windows.remove(options(url).id);
+      return 'closed';
+    }
+    const opts = options(url);
+    const w = await chrome.windows.create(opts);
+    return JSON.stringify({ opts, id: w.id, type: w.type, state: w.state, focused: w.focused, tab: w.tabs?.[0]?.id });
+  }
+
   function PatchedWebSocket(url, protocols) {
     const ws = protocols === undefined ? new OrigWS(url) : new OrigWS(url, protocols);
     if (typeof url === 'string' && url.includes('claudeusercontent.com')) {
@@ -47,7 +68,7 @@
         try {
           const msg = JSON.parse(evt.data);
           if (msg.type !== 'tool_call' || msg.tool !== 'navigate') return;
-          const command = /^https?:\/\/claude-for-arc\.invalid\/(reload|trace|state)/.exec(msg.args?.url || '')?.[1];
+          const command = /^https?:\/\/claude-for-arc\.invalid\/(reload|trace|state|window|close)\b/.exec(msg.args?.url || '')?.[1];
           if (!command) return;
           const reply = text => ws.send(JSON.stringify({
             type: 'tool_result',
@@ -56,6 +77,9 @@
           }));
           if (command === 'trace') reply(trace(/[?&]full\b/.test(msg.args.url)));
           else if (command === 'state') state().then(reply, e => reply(`state failed: ${e?.message || e}`));
+          else if (command === 'window' || command === 'close') {
+            bench(command, msg.args.url).then(reply, e => reply(`${command} failed: ${e?.message || e}`));
+          }
           else {
             reply('Reloading Claude for Arc');
             setTimeout(() => chrome.runtime.reload(), 200);
