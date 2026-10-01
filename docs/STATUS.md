@@ -20,7 +20,9 @@ Rejected fix: show the new tab for a moment and restore the previous one. Activa
 
 Chosen fix: `tabs.create` with `active: false` opens the tab in a `popup` window (a Little Arc window) with `focused: false`. It opens behind the current window, the user's space and active tab stay as they were, and click, typing and screenshot work on the first try. A second tab gets a second window; closing the tab closes its window.
 
-With Arc behind another application the click and the screenshot also work (checked once). Opening the first window brings Arc to the front for 1-2 seconds, then the previous application is in front again (2 of 2 timed runs); a second window did not do that. In one untimed run Arc was still in front several seconds later, not explained.
+With Arc behind another application the click and the screenshot also work (checked once).
+
+Opening a window brings Arc to the front, and Arc stays there until the user switches back. Measured on 2026-10-01 with the user away from the keyboard, every `chrome.windows.create` did it: `popup` with `focused: false` (2 of 2, also with another popup already open), `normal` with `focused: false`, and `popup` with `state: minimized` (Arc ignores the state). The earlier "1-2 seconds, then back" readings were the user switching back.
 
 Not tested: a minimized Little Arc window.
 
@@ -41,12 +43,12 @@ Next time it happens, before reloading: call navigate with `tabId: 1` on `https:
 
 - Find the cause of the tab creation hang (see above).
 - Recheck the work profile (second Claude account) and the panel agent on 1.0.97.
-- Stop the first window from bringing Arc to the front, if Arc allows it.
+- Decide how to avoid taking the focus: no window option prevents it (see above).
 - Test clicks with the Little Arc window minimized.
 - Windows: paths are in the script, not tested.
 
 ## Known issues
 
-- Every tab Claude Code opens is a separate Little Arc window. Opening the first one brings Arc to the front for 1-2 seconds.
+- Every tab Claude Code opens is a separate Little Arc window, and opening it brings Arc to the front.
 - `windows.getAll({ populate: true })` returns tabs without the emulated `groupId`.
 - Claude Code cannot type into the side panel iframe (not needed for normal use).

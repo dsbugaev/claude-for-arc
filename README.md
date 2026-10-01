@@ -65,7 +65,7 @@ Browser control itself needed no changes. The official code uses `chrome.debugge
 ## Limitations
 
 - The panel uses the extension's built-in chat, not the newer claude.ai-based panel.
-- Each tab Claude Code opens appears as a separate Little Arc window and closes when Claude closes the tab. If you are in another application, opening the first window brings Arc to the front for a second or two.
+- Each tab Claude Code opens appears as a separate Little Arc window and closes when Claude closes the tab. If you are in another application, opening such a window brings Arc to the front.
 - Cmd+E is captured on web pages to toggle the panel.
 - The panel cannot open on `arc://` pages, the Chrome Web Store, and tabs that were open before the extension was loaded (reload the tab).
 - Tested on macOS only. Windows paths are supported by the script but not tested.
