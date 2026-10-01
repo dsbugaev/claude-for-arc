@@ -43,7 +43,7 @@ Next time it happens, before reloading: call navigate with `tabId: 1` on `https:
 
 - Find the cause of the tab creation hang (see above).
 - Recheck the work profile (second Claude account) and the panel agent on 1.0.97.
-- Decide how to avoid taking the focus: no window option prevents it (see above).
+- Focus: decided on 2026-10-01 to keep it as it is for a week of normal use. If it gets in the way, the next option is one persistent window for all of Claude's tabs, so Arc comes to the front once per Arc launch.
 - Test clicks with the Little Arc window minimized.
 - Windows: paths are in the script, not tested.
 
