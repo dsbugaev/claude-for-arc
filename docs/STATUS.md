@@ -39,6 +39,8 @@ What is known:
 
 Next time it happens, before reloading: call navigate with `tabId: 1` on `https://claude-for-arc.invalid/trace` and `/state` (dev build) and paste both here. The pending entry in the trace names the call that hangs.
 
+2026-10-05, personal profile, extension 1.0.97-arc: the hang came back (2 of 2 calls). The trace had **no pending entries**; its last records were `windows.getLastFocused` → `tabs.create` (`active: false`) and `windows.create` (`type: popup`) → `tabs.get` → `tabs.group` into the new popup window, all `ok` in under 60 ms. `/state` showed two leftover `about:blank` tabs: one in the normal window, one alone in a popup window, both with `groupId: -1`. So the traced window and tab APIs all return; the hang is after them (group bookkeeping or the reply to Claude Code), not in a native call. Reload fixed it on the first try.
+
 ## Next
 
 - Find the cause of the tab creation hang (see above).
