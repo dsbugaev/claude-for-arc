@@ -41,6 +41,14 @@ Next time it happens, before reloading: call navigate with `tabId: 1` on `https:
 
 2026-10-05, personal profile, extension 1.0.97-arc: the hang came back (2 of 2 calls). The trace had **no pending entries**; its last records were `windows.getLastFocused` → `tabs.create` (`active: false`) and `windows.create` (`type: popup`) → `tabs.get` → `tabs.group` into the new popup window, all `ok` in under 60 ms. `/state` showed two leftover `about:blank` tabs: one in the normal window, one alone in a popup window, both with `groupId: -1`. So the traced window and tab APIs all return; the hang is after them (group bookkeeping or the reply to Claude Code), not in a native call. Reload fixed it on the first try.
 
+2026-10-15, personal profile, extension 1.0.97-arc: same picture. One `createIfEmpty` call timed out; the trace had **no pending entries** and ended with `windows.getLastFocused` → `tabs.create` → `windows.create` (`popup`) → `tabs.get` → `tabs.group`, all `ok`. A follow-up `tabs_context_mcp` without `createIfEmpty` answered "No tab group exists", so the group record was never saved. `/state` was not captured. Reload fixed it on the first try.
+
+## Open: Claude's popup window disappears during long work (2026-10-15)
+
+A page script ran for several minutes in a Claude tab (a long chain of `fetch` calls started from `javascript_tool`). Twice within about 5 minutes the next `javascript_tool` call failed with "Couldn't determine which page this action targets", `tabs_context_mcp` said "No tab group exists", and `/state` showed only the normal window: the popup window and its tab were gone. Not known whether the user closed the window (it had just come to the front) or Arc closed it. A third run of about 8 minutes finished without it. Until this is understood, make long page jobs resumable.
+
+Also: a `javascript_tool` call that awaits about 25 seconds times out. Start long jobs without awaiting them and poll their state in later calls.
+
 ## Next
 
 - Find the cause of the tab creation hang (see above).
