@@ -1,5 +1,15 @@
 # Status
 
+## Arc shuts down, Dia works without the patch (2026-10-24)
+
+- The Browser Company shuts Arc down on 2026-12-22 (member email of 2026-10-22, arc.net). After that date the Arc account cannot be used and Arc stops working; account data is deleted within 30 days. The recommended replacement is Dia, which imports Arc spaces (as Dia profiles), pinned tabs, folders, logins, passwords and extensions.
+- Tested on macOS: Dia 1.54.2 (Chromium 156) and the official Claude in Chrome 1.0.102 from the Chrome Web Store, no patch. After the Arc import Dia has two Chromium profiles, personal and work, each with its own copy of the extension signed in to its own Claude account. Both connected to Claude Code with no native messaging host file in Dia's folder.
+- Works in both profiles: tab group, navigate, read_page, find, get_page_text, form_input, javascript_tool, click by ref and by coordinates, type, key, screenshot, zoom. In a background tab that was never shown, clicks, typing and screenshots also work, and the user's visible tab does not change.
+- Limitation: a new tab (`tabs_context_mcp` with `createIfEmpty`, `tabs_create_mcp`) fails with "Tab not found for session ID: TabSessionID(value: N)" while the Dia window shows a profile of the other Claude account (3 of 3). No stray tabs are left. Tabs already in Claude's group keep working.
+- Seen in another session the same day: "Security check failed: the page navigated to a different domain" when a page navigates while JavaScript runs (re-read the tab and retry); a navigation started from JavaScript with `setTimeout` did not happen; "CDP Runtime.evaluate timed out" when the page is busy for more than about 45 s (same in Arc).
+- Not checked: the side panel in Dia.
+- Decision: day-to-day agent work moved to Dia. The patch stays in both Arc profiles until Arc shuts down. The open issues below are no longer investigated.
+
 ## Current state (2026-09-30)
 
 Works in the personal Arc profile. Verified on macOS, Arc 1.166.0 (Chromium 154), official extension 1.0.97, from Claude Code:
@@ -55,11 +65,10 @@ Also: a `javascript_tool` call that awaits about 25 seconds times out. Start lon
 
 ## Next
 
-- Find the cause of the tab creation hang (see above).
-- Recheck the work profile (second Claude account) and the panel agent on 1.0.97.
-- Focus: decided on 2026-10-01 to keep it as it is for a week of normal use. If it gets in the way, the next option is one persistent window for all of Claude's tabs, so Arc comes to the front once per Arc launch.
-- Test clicks with the Little Arc window minimized.
-- Windows: paths are in the script, not tested.
+- Until 2026-12-22: keep the patch working in Arc only as needed; no new features.
+- After Arc shuts down: decide whether to archive the repository.
+
+Dropped on 2026-10-24 because Arc is going away: finding the cause of the tab creation hang, rechecking the work profile and the panel agent on 1.0.97, one persistent window for Claude's tabs, clicks with a minimized Little Arc window, testing on Windows.
 
 ## Known issues
 

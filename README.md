@@ -1,5 +1,7 @@
 # Claude for Arc: Claude in Chrome for the Arc browser
 
+> **Arc shuts down on December 22, 2026.** The Browser Company announced that Arc stops working on that date and recommends moving to [Dia](https://www.diabrowser.com), which imports Arc spaces, tabs, logins and extensions. In Dia the official Claude in Chrome extension works without this patch: on 2026-10-24, Dia 1.54.2 with Claude in Chrome 1.0.102 passed tab groups, navigation, reading pages, form input, JavaScript, clicks, typing and screenshots, also in background tabs. See the [FAQ](#faq) for the one difference we found. Dia is not on Anthropic's list of supported browsers, so recheck after updates. This project is useful only until Arc shuts down.
+
 Make the official **Claude in Chrome** extension work in the **Arc browser**: a working Claude side panel, and full browser control from **Claude Code** (click, type, fill forms, read pages, run JavaScript, take screenshots).
 
 Out of the box, Claude in Chrome does not work in Arc. Arc has no side panel, so the panel never opens. Arc's tab groups API does not work either, and the extension builds every browser session on a tab group, so Claude Code's browser tools time out on the first call. This project adds a small compatibility layer on top of **your own installed copy** of the official extension and fixes both.
@@ -86,6 +88,9 @@ Install Claude for Arc, sign in to the panel with your Claude Code account, then
 
 **Why "Browser extension is not connected" or "tabs_context_mcp did not respond in time" in Arc?**
 The first means the extension is not signed in with the same account as Claude Code, or needs a reconnect (`/chrome`). The second is the tab group problem this project fixes.
+
+**Does Claude in Chrome work in Dia?**
+Yes, without this patch, as tested on macOS on 2026-10-24 with Dia 1.54.2 (Chromium 156) and Claude in Chrome 1.0.102. Install the extension from the Chrome Web Store in each Dia profile and sign in. Claude Code connected to both profiles without extra setup. One difference: Claude can open a new tab only while the Dia window shows a profile signed in to the same Claude account; otherwise the call fails with "Tab not found for session ID". Tabs Claude already has keep working. Not tested: the side panel.
 
 **Is this official?**
 No. This is an unofficial community project, not affiliated with or endorsed by Anthropic or The Browser Company.
